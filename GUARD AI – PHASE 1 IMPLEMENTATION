@@ -1,0 +1,808 @@
+# GUARD AI – PHASE 1 IMPLEMENTATION
+## Authentication, RBAC, Multi-Tenancy & Security Baseline
+
+Repository: MohammedAdnan9004/guardai
+
+Act as a Senior Next.js Engineer, Supabase Architect, Application Security Engineer, and SaaS UI/UX Designer.
+
+We are now starting Phase 1 of GuardAI.
+
+First, inspect the existing GitHub repository and README.md to understand the complete product vision, architecture, technology stack, security requirements, and development roadmap.
+
+Do not change the overall project vision or introduce a different architecture.
+
+Your responsibility is to implement Phase 1 completely and professionally.
+
+# 1. PROJECT OBJECTIVE
+
+Build the foundational infrastructure for GuardAI, an AI-powered SOC Analyst SaaS.
+
+Phase 1 covers:
+
+1. Next.js application foundation.
+2. Premium UI design system.
+3. Light and dark themes.
+4. Supabase authentication.
+5. Email/password registration.
+6. Google OAuth.
+7. Login and logout.
+8. Forgot password and six-digit OTP verification.
+9. Password reset.
+10. Workspace provisioning.
+11. Multi-tenant database architecture.
+12. Three-tier RBAC.
+13. Custom JWT claims.
+14. PostgreSQL Row Level Security.
+15. Upstash Redis rate limiting.
+16. Protected routes.
+17. Global input validation and security baseline.
+
+Do not implement Phase 2 log ingestion, embeddings, RAG, or AI threat analysis yet.
+
+# 2. TECHNOLOGY STACK
+
+Use the following stack:
+
+- Next.js 16 App Router.
+- TypeScript with strict mode.
+- Tailwind CSS.
+- shadcn/ui.
+- Framer Motion.
+- Lucide React.
+- Supabase PostgreSQL.
+- Supabase Auth.
+- @supabase/ssr.
+- Upstash Redis.
+- @upstash/redis.
+- Zod.
+- React Hook Form.
+- Sonner.
+- next-themes.
+
+Use pnpm as the package manager.
+
+Use Server Components by default and Client Components only where interactive behavior is required.
+
+Use current stable compatible package versions.
+
+# 3. PROJECT FOUNDATION
+
+Create a clean feature-oriented architecture.
+
+Suggested structure:
+
+src/
+  app/
+    (auth)/
+      login/
+      signup/
+      forgot-password/
+      verify-otp/
+      reset-password/
+
+    (platform)/
+      dashboard/
+      super-admin/
+
+    auth/
+      callback/
+
+    layout.tsx
+    globals.css
+
+  components/
+    ui/
+    auth/
+    layout/
+    shared/
+
+  features/
+    authentication/
+    workspace/
+    members/
+    permissions/
+
+  lib/
+    supabase/
+      client.ts
+      server.ts
+      proxy.ts
+
+    redis/
+    validations/
+    security/
+
+  services/
+  hooks/
+  types/
+  utils/
+
+supabase/
+  migrations/
+  seed.sql
+
+tests/
+
+.env.example
+DEVELOPMENT_STATUS.md
+
+Keep business logic separate from UI components.
+
+# 4. PREMIUM UI/UX DESIGN SYSTEM
+
+The UI must be one of the strongest parts of GuardAI.
+
+Do not generate a generic authentication template.
+
+Create a unique cybersecurity SaaS visual identity.
+
+Design direction:
+
+- Premium enterprise SOC aesthetic.
+- Graphite and deep navy backgrounds.
+- Electric violet and cyan accents.
+- Subtle animated grid patterns.
+- Glass-like surfaces.
+- Soft gradient lighting.
+- Modern typography.
+- Smooth Framer Motion animations.
+- Professional form controls.
+- Beautiful focus and hover states.
+- Carefully designed empty states.
+- Responsive layouts.
+
+Implement both dark and light modes.
+
+Both modes must have their own carefully designed colors, backgrounds, borders, cards, text and interaction states.
+
+Create a reusable design token system.
+
+## Authentication Page Layout
+
+Create a premium split-screen authentication experience.
+
+Left section:
+- GuardAI logo.
+- Strong product headline.
+- Security-focused messaging.
+- Animated threat visualization.
+- Subtle animated background.
+- Short product benefit statements.
+
+Right section:
+- Authentication form.
+- Form validation.
+- Social authentication.
+- Theme toggle.
+- Appropriate navigation.
+
+The design should feel like an enterprise cybersecurity product.
+
+Do not overload the UI with unnecessary animation.
+
+Prioritize accessibility, usability and responsiveness.
+
+# 5. SIGNUP IMPLEMENTATION
+
+Route: /signup
+
+Fields:
+
+- Full Name.
+- Work Email.
+- Password.
+- Confirm Password.
+- Workspace Name.
+
+Validation using Zod:
+
+Email:
+- Valid email structure.
+- Trim whitespace.
+- Normalize email.
+
+Password:
+- Minimum 8 characters.
+- At least one uppercase letter.
+- At least one lowercase letter.
+- At least one number.
+- At least one special character.
+
+Confirm Password:
+- Must match password.
+
+Workspace Name:
+- Required.
+- Proper length limits.
+- Trimmed and validated.
+
+Implement:
+- Password visibility toggle.
+- Password strength indicator.
+- Real-time field validation.
+- Loading states.
+- Error messages.
+- Success feedback.
+
+## Registration Flow
+
+1. User submits registration form.
+2. Validate input on the client.
+3. Validate again on the server.
+4. Register using Supabase Auth.
+5. Store full_name and workspace_name as signup metadata.
+6. Database trigger provisions the profile and workspace.
+7. Assign Tenant Admin membership to the workspace owner.
+8. Send email confirmation.
+9. Show confirmation-required screen.
+10. After confirmation, establish the authenticated session and redirect to /dashboard.
+
+Never accept global_role or workspace_role from user-submitted metadata.
+
+The initial role must be assigned by trusted database logic.
+
+# 6. GOOGLE OAUTH
+
+Implement Google OAuth using Supabase Auth.
+
+Flow:
+
+1. User clicks Continue with Google.
+2. Redirect to Google.
+3. Authenticate.
+4. Return through /auth/callback.
+5. Synchronize profile.
+6. Check workspace membership.
+
+If the user is new and does not have a workspace, redirect to workspace onboarding.
+
+Collect the workspace name before provisioning the workspace.
+
+Automatically assign Tenant Admin to the first workspace owner.
+
+Existing users should return to their correct dashboard.
+
+Handle OAuth cancellation and errors properly.
+
+# 7. LOGIN IMPLEMENTATION
+
+Route: /login
+
+Fields:
+- Work Email.
+- Password.
+- Remember Me.
+
+Implement:
+- Email validation.
+- Password validation.
+- Password visibility.
+- Loading state.
+- Error feedback.
+- Forgot password navigation.
+
+After successful authentication:
+
+Super Admin -> /super-admin
+
+Tenant Admin -> /dashboard
+
+Member -> /dashboard
+
+Determine roles using trusted server-side database/JWT information.
+
+Do not trust roles supplied by the frontend.
+
+## Brute-Force Protection
+
+Use Upstash Redis.
+
+Requirement:
+
+Five consecutive failed login attempts must trigger a 15-minute lockout.
+
+Implement:
+- IP-based rate limiting.
+- Normalized account-based failure tracking.
+- Atomic Redis operations.
+- Lock expiration.
+- Successful-login counter reset.
+- Proper generic error messages.
+
+Do not expose whether an email address exists.
+
+The lockout must be enforced server-side, not only through disabled frontend buttons.
+
+# 8. FORGOT PASSWORD AND OTP
+
+Implement a three-step recovery experience.
+
+Page 1: /forgot-password
+
+- Work Email.
+- Validate email.
+- Request six-digit OTP through Supabase Auth.
+- Show confirmation message.
+
+Rate limiting:
+
+- Maximum three OTP resend requests per 15 minutes.
+- Upstash Redis.
+- Separate email and IP protection.
+- 60-second resend cooldown.
+
+Page 2: /verify-otp
+
+Create six individual input fields.
+
+Requirements:
+- Numeric input.
+- Auto-focus.
+- Backspace navigation.
+- Paste support.
+- Auto-submit when all digits are entered.
+- 60-second resend timer.
+- Loading state.
+- Invalid OTP feedback.
+
+Page 3: /reset-password
+
+Fields:
+- New Password.
+- Confirm New Password.
+
+Implement:
+- Password strength indicator.
+- Strict Zod validation.
+- Password matching.
+- Supabase recovery verification.
+- Secure password update.
+
+Use Supabase Auth's supported recovery OTP flow. Configure the email template to send the numeric token and verify it with the recovery token type before permitting the password update.
+
+Do not build a custom OTP system that bypasses Supabase Auth.
+
+# 9. LOGOUT IMPLEMENTATION
+
+Implement logout in:
+
+- User avatar dropdown.
+- Sidebar footer.
+- Profile settings.
+
+Logout process:
+
+1. Call Supabase signOut().
+2. Clear the authenticated session.
+3. Clear server-managed session cookies through the Supabase SSR integration.
+4. Reset relevant client state.
+5. Invalidate protected route caches.
+6. Prevent protected page access after logout.
+7. Redirect to /login.
+8. Show logout confirmation.
+
+Use the actual cookie names generated by Supabase SSR rather than hardcoding assumed names.
+
+# 10. DATABASE ARCHITECTURE
+
+Use Supabase PostgreSQL.
+
+Create migration files for:
+
+## profiles
+
+- id UUID PRIMARY KEY REFERENCES auth.users(id)
+- email
+- full_name
+- global_role
+- created_at
+- updated_at
+
+global_role:
+- super_admin
+- user
+
+Default: user.
+
+## workspaces
+
+- id UUID PRIMARY KEY
+- name
+- owner_id
+- plan
+- subscription_status
+- status
+- created_at
+- updated_at
+
+plan:
+- free
+- pro
+
+## workspace_members
+
+- id UUID PRIMARY KEY
+- workspace_id
+- user_id
+- workspace_role
+- joined_at
+- created_at
+
+workspace_role:
+- tenant_admin
+- member
+
+Add appropriate foreign keys, unique constraints and indexes.
+
+Prevent duplicate memberships.
+
+A user may belong to multiple workspaces in the future.
+
+For Phase 1, support one initial workspace and an active workspace context.
+
+# 11. AUTOMATIC PROFILE SYNCHRONIZATION
+
+Create a PostgreSQL trigger:
+
+on_auth_user_created
+
+The trigger must automatically create the user's profile when a record is inserted into auth.users.
+
+For email/password registration:
+- Create profile.
+- Create workspace.
+- Add user as workspace owner.
+- Add Tenant Admin membership.
+
+Ensure these operations are transactional.
+
+For Google OAuth:
+- Create the profile automatically.
+- If workspace_name is available and validated, provision the workspace.
+- Otherwise, send the user through workspace onboarding.
+- Ensure provisioning is idempotent.
+
+Use secure SECURITY DEFINER functions only where necessary.
+
+Set a safe search_path explicitly.
+
+Never trust role values from raw user metadata.
+
+# 12. JWT CUSTOM CLAIMS
+
+Implement a Supabase Custom Access Token Hook.
+
+Include trusted claims:
+
+- global_role.
+- workspace_id.
+- workspace_role.
+
+Claims must be retrieved from trusted database records.
+
+Do not derive authorization from user-editable user_metadata.
+
+If a user belongs to multiple workspaces, use a validated active workspace context.
+
+When membership or role changes, ensure stale JWT claims are not treated as permanently authoritative.
+
+Use server-side membership verification for sensitive operations.
+
+# 13. MULTI-TENANCY AND RLS
+
+Enable RLS on every application table.
+
+Create policies for:
+
+- Profiles.
+- Workspaces.
+- Workspace members.
+
+Rules:
+
+1. Users can read their own profile.
+2. Users cannot change their own global_role.
+3. Members can only access authorized workspace data.
+4. Tenant Admins can manage their workspace according to their permissions.
+5. Members cannot manage billing or workspace administration.
+6. Cross-workspace data access must be rejected.
+7. Super Admin access must come from a trusted role assignment.
+
+Do not create broad policies such as USING (true).
+
+Do not assume frontend route protection replaces RLS.
+
+Create explicit SQL tests or integration tests for cross-tenant access.
+
+Use service-role credentials only in trusted server-side operations.
+
+# 14. RBAC AUTHORIZATION
+
+Implement a centralized permission system.
+
+Roles:
+
+SUPER ADMIN:
+- Platform-level access.
+- Global administration.
+- Workspace oversight.
+- User management.
+- Global audit access.
+
+TENANT ADMIN:
+- Dashboard access.
+- Workspace management.
+- Member management.
+- Billing access.
+- Workspace settings.
+
+MEMBER:
+- Dashboard access.
+- Security operations access in future phases.
+- Personal profile.
+- MFA settings.
+
+Members must not access:
+- Billing.
+- Subscription management.
+- Workspace settings.
+- Team invitations.
+
+Create reusable authorization helpers:
+
+- getCurrentUser()
+- getCurrentWorkspace()
+- getCurrentMembership()
+- requireAuthenticatedUser()
+- requireWorkspaceRole()
+- requireSuperAdmin()
+
+All sensitive authorization must happen on the server.
+
+# 15. NEXT.JS ROUTE PROTECTION
+
+Use Next.js 16 Proxy convention with proxy.ts.
+
+Do not blindly use the older middleware.ts naming from Next.js 15.
+
+Use @supabase/ssr for cookie-based authentication.
+
+Verify user identity using supabase.auth.getClaims() or another appropriate server-verified identity method.
+
+Route behavior:
+
+/login:
+- Redirect authenticated users to their role-based destination.
+
+/signup:
+- Redirect authenticated users appropriately.
+
+/dashboard:
+- Require authentication and workspace membership.
+
+/super-admin:
+- Require global_role === super_admin.
+
+All sensitive server actions and route handlers must independently verify authorization.
+
+Proxy is not the only security boundary.
+
+# 16. UPSTASH REDIS SECURITY
+
+Create a centralized Redis service.
+
+Implement reusable utilities for:
+
+- Login failure tracking.
+- Login lockouts.
+- OTP resend limits.
+- IP-based rate limits.
+- Account-based rate limits.
+
+Use atomic operations or Lua scripts where multiple counters must change together.
+
+Use namespaced keys.
+
+Example:
+
+guardai:auth:login:ip:{ip}
+guardai:auth:login:account:{email_hash}
+guardai:auth:otp:ip:{ip}
+guardai:auth:otp:email:{email_hash}
+
+Hash normalized email identifiers before including them in Redis keys.
+
+Use expiration and cleanup policies.
+
+Do not silently allow authentication requests when Redis fails. Fail closed for protected sensitive operations and provide a safe service-unavailable response.
+
+# 17. GLOBAL INPUT VALIDATION AND SECURITY
+
+Use Zod for all input schemas.
+
+Validate both client-side and server-side.
+
+Implement:
+- Email normalization.
+- Password rules.
+- Workspace validation.
+- Secure redirect validation.
+- Request payload validation.
+- Rate limiting.
+- XSS prevention.
+- Safe error handling.
+- CSRF protection where applicable.
+
+Use secure SameSite cookies and HTTPS in production.
+
+Use React's normal escaping and avoid unsafe HTML rendering.
+
+If HTML rendering becomes necessary, sanitize using an appropriate library.
+
+# 18. ENVIRONMENT CONFIGURATION
+
+Create .env.example.
+
+Include:
+
+NEXT_PUBLIC_SUPABASE_URL=
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=
+
+SUPABASE_SERVICE_ROLE_KEY=
+
+UPSTASH_REDIS_REST_URL=
+UPSTASH_REDIS_REST_TOKEN=
+
+GOOGLE_CLIENT_ID=
+GOOGLE_CLIENT_SECRET=
+
+Never commit actual credentials.
+
+Never expose service-role or Redis credentials through NEXT_PUBLIC variables.
+
+Document all setup steps.
+
+# 19. TESTING REQUIREMENTS
+
+Write tests for:
+
+Authentication:
+- Signup validation.
+- Login validation.
+- Password rules.
+- Password mismatch.
+- OTP verification.
+- Password reset.
+- Logout.
+
+RBAC:
+- Super Admin access.
+- Tenant Admin access.
+- Member restrictions.
+- Unauthorized access.
+
+Multi-tenancy:
+- Workspace isolation.
+- Membership checks.
+- Cross-tenant access rejection.
+- Profile ownership.
+
+Security:
+- Five failed login attempts.
+- Fifteen-minute lockout.
+- Three OTP resend limit.
+- Redis expiration.
+- Invalid payload rejection.
+- Unauthorized route access.
+- Role escalation prevention.
+
+Run:
+- TypeScript checks.
+- ESLint.
+- Unit tests.
+- Integration tests.
+- Production build.
+
+# 20. IMPLEMENTATION ORDER
+
+Follow this exact order:
+
+TRACK A:
+Project initialization, dependencies, folder architecture and design system.
+
+TRACK B:
+Supabase browser/server clients, SSR integration and environment validation.
+
+TRACK C:
+Database migrations, profiles, workspaces, memberships and triggers.
+
+TRACK D:
+Signup, Google OAuth, login, email confirmation and logout.
+
+TRACK E:
+Forgot password, six-digit OTP and password reset.
+
+TRACK F:
+JWT claims, workspace context, RBAC and protected routes.
+
+TRACK G:
+Upstash Redis rate limiting and security baseline.
+
+TRACK H:
+Automated tests, responsive verification and documentation.
+
+Do not jump directly to the dashboard or AI features.
+
+# 21. DEVELOPMENT DOCUMENTATION
+
+Maintain DEVELOPMENT_STATUS.md.
+
+Include:
+
+- Completed tasks.
+- Pending tasks.
+- Implemented database migrations.
+- Implemented authentication flows.
+- Working OAuth configuration.
+- RLS policies.
+- Redis configuration.
+- Required environment variables.
+- Test results.
+- Known limitations.
+
+Update README.md when Phase 1 is genuinely complete.
+
+# 22. ACCEPTANCE CRITERIA
+
+Phase 1 is complete only when:
+
+1. The application starts successfully.
+2. The UI is responsive in light and dark modes.
+3. Users can register.
+4. Email confirmation works.
+5. Google OAuth works when configured.
+6. Workspace provisioning works.
+7. Tenant Admin assignment works.
+8. Login works.
+9. Brute-force lockout works.
+10. Forgot password works.
+11. Six-digit recovery OTP works.
+12. Password reset works.
+13. Logout invalidates the session.
+14. Protected routes work.
+15. Super Admin authorization works.
+16. Tenant Admin and Member permissions work.
+17. JWT claims contain trusted role and workspace information.
+18. RLS prevents cross-tenant access.
+19. Redis rate limiting works.
+20. Automated security tests pass.
+
+Do not mark any integration complete merely because the code exists. Verify it using actual credentials or a properly isolated test environment.
+
+If credentials are missing, implement the adapter and clearly document the remaining setup.
+
+# FINAL INSTRUCTION
+
+Start by inspecting the repository and current Git history.
+
+Then implement Phase 1 in the defined tracks.
+
+Do not modify the core GuardAI product vision.
+
+Do not implement Phase 2 features.
+
+Do not generate a superficial frontend-only demonstration.
+
+Build a clean, secure, scalable foundation that can support all future GuardAI phases.
+
+When finished, provide:
+1. Summary of implemented features.
+2. Complete changed-file list.
+3. Database migration list.
+4. Environment variables required.
+5. Setup instructions.
+6. Test results.
+7. Remaining manual configuration.
+8. Recommended commit message.
+
+Only declare Phase 1 complete after the acceptance criteria have been verified.
